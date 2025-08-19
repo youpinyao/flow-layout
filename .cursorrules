@@ -1,0 +1,12 @@
+# 说明
+
+这是一个流式布局插件项目，使用typescript开发，vite构建
+
+## 技术栈
+
+- typescript
+- eslint
+- prettier
+- stylelint
+- vite
+- pnpm

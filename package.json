@@ -1,0 +1,60 @@
+{
+  "name": "flow-layout",
+  "version": "1.0.0",
+  "description": "A flow layout plugin built with TypeScript",
+  "main": "dist/flow-layout.umd.js",
+  "module": "dist/flow-layout.es.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/flow-layout.es.js",
+      "require": "./dist/flow-layout.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc --declaration --emitDeclarationOnly --outDir dist",
+    "preview": "vite preview",
+    "demo": "vite",
+    "lint": "eslint src --ext .ts,.tsx --fix",
+    "lint:style": "stylelint src/**/*.{css,scss,sass,less} --fix",
+    "format": "prettier --write src",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "flow-layout",
+    "typescript",
+    "plugin",
+    "layout",
+    "grid",
+    "css"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "stylelint": "^16.2.1",
+    "stylelint-config-prettier": "^9.0.5",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-config-standard-scss": "^13.0.0",
+    "stylelint-order": "^6.0.4",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
+  }
+}
