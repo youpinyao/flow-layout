@@ -114,7 +114,7 @@ export class FlowLayout {
         // 如果下一个元素的宽度大于容器宽度，则换列
         if (
           position.x + (next?.offsetWidth ?? 0) >
-          container.clientWidth - getHorizontalPadding(node)
+          container.clientWidth - getHorizontalPadding(container)
         ) {
           position.x = 0;
         }
@@ -151,8 +151,9 @@ export class FlowLayout {
       clearTimeout(this.debounceTimeout);
     }
     this.debounceTimeout = setTimeout(() => {
+      console.log(333);
       this.update();
-    }, 100);
+    }, 50);
   }
 
   public updateOptions(newOptions: Partial<FlowLayoutOptions>): void {
