@@ -1,4 +1,4 @@
-import FlowLayout from '../src/index.ts';
+import FlowLayout from '../src/index';
 
 class FlowLayoutDemo {
   container: HTMLElement;
@@ -24,6 +24,7 @@ class FlowLayoutDemo {
       container: this.container,
       items: '.flow-item',
       gap,
+      appendToMinHeightColumn: true,
     });
   }
 
@@ -43,7 +44,7 @@ class FlowLayoutDemo {
 
   addInitialItems() {
     // Add some initial items
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 100; i++) {
       this.addItem(i);
     }
   }
@@ -55,7 +56,7 @@ class FlowLayoutDemo {
     item.textContent = `Item ${this.itemCounter}`;
     // random width and height
     item.style.width = `200px`;
-    item.style.height = `${Math.floor(Math.random() * 200) + (index % 2 ? 200 : 0)}px`;
+    item.style.height = `${Math.floor(Math.random() * 200) + (index % 2 ? 200 : 50)}px`;
 
     this.container.appendChild(item);
   }

@@ -2,31 +2,24 @@ import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.ts', '**/*.js'],
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
       },
       globals: {
-        HTMLElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        Element: 'readonly',
-        MutationObserver: 'readonly',
-        Document: 'readonly',
-        Window: 'readonly',
-        console: 'readonly',
-        document: 'readonly',
-        window: 'readonly',
-        module: 'readonly',
-        require: 'readonly',
-        getComputedStyle: 'readonly',
-        ResizeObserver: 'readonly',
+        ...globals.browser,
+        ...globals.es2021,
+        ...globals.node,
       },
     },
     plugins: {
@@ -44,6 +37,34 @@ export default [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      'no-undef': 'off', // TypeScript handles this with its own type checking
+    },
+  },
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+        // Node.js 兼容性（用于构建工具）
+        module: 'readonly',
+        require: 'readonly',
+        process: 'readonly',
+      },
+    },
+    plugins: {
+      prettier: prettier,
+    },
+    rules: {
+      'prettier/prettier': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
       'no-console': 'warn',

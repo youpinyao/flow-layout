@@ -4,10 +4,12 @@ export interface FlowLayoutOptions {
   container: Selector;
   items: Selector | Selector[];
   gap?: number;
+  appendToMinHeightColumn?: boolean;
 }
 
 export class FlowLayout {
   private options: FlowLayoutOptions;
+  private debounceTimeout: NodeJS.Timeout | null = null;
 
   constructor(options: FlowLayoutOptions) {
     this.options = {
@@ -47,11 +49,25 @@ export class FlowLayout {
     container.style.position = 'relative';
 
     const resizeObserver = new ResizeObserver(() => {
-      this.update();
+      this.debounceUpdate();
     });
 
-    const mutationObserver = new MutationObserver(() => {
-      this.update();
+    const mutationObserver = new MutationObserver(mutations => {
+      this.debounceUpdate();
+
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof HTMLElement) {
+            resizeObserver.unobserve(node);
+            resizeObserver.observe(node);
+          }
+        });
+        mutation.removedNodes.forEach(node => {
+          if (node instanceof HTMLElement) {
+            resizeObserver.unobserve(node);
+          }
+        });
+      });
     });
 
     mutationObserver.observe(container, {
@@ -63,7 +79,7 @@ export class FlowLayout {
   }
 
   public update(): void {
-    const { gap = 10 } = this.options;
+    const { gap = 10, appendToMinHeightColumn = false } = this.options;
     const container = this.getContainer();
     const position = {
       x: 0,
@@ -72,28 +88,51 @@ export class FlowLayout {
     const positions: Record<number, HTMLElement[]> = {};
 
     const items = this.getItems();
-    let lineMaxHeight = 0;
+    const getPositionY = (items?: HTMLElement[]) => {
+      return (
+        items?.reduce((acc, item) => acc + item.offsetHeight + gap, 0) || 0
+      );
+    };
+    const getHorizontalPadding = (node: HTMLElement) => {
+      return (
+        parseInt(getComputedStyle(node).paddingLeft.replace('px', '')) +
+        parseInt(getComputedStyle(node).paddingRight.replace('px', ''))
+      );
+    };
 
     items.forEach(node => {
       const next = node.nextElementSibling as HTMLElement;
       if (node instanceof HTMLElement) {
         node.style.position = 'absolute';
-        node.style.transform = `translate(${position.x}px, ${positions[position.x]?.reduce((acc, item) => acc + item.offsetHeight + gap, 0) || 0}px)`;
+        node.style.transform = `translate(${position.x}px, ${getPositionY(
+          positions[position.x]
+        )}px)`;
 
         positions[position.x] = [...(positions[position.x] || []), node];
         position.x += node.offsetWidth + gap;
 
-        lineMaxHeight = Math.max(lineMaxHeight, node.offsetHeight);
+        // 如果下一个元素的宽度大于容器宽度，则换列
         if (
           position.x + (next?.offsetWidth ?? 0) >
-          container.clientWidth -
-            parseInt(
-              getComputedStyle(container).paddingLeft.replace('px', '')
-            ) -
-            parseInt(getComputedStyle(container).paddingRight.replace('px', ''))
+          container.clientWidth - getHorizontalPadding(node)
         ) {
           position.x = 0;
-          lineMaxHeight = 0;
+        }
+        // 如果appendToMinHeightColumn为true，则将元素添加到高度最小的列，并且没有空列的情况下
+        if (
+          appendToMinHeightColumn &&
+          // 判断当前列是否有元素
+          getPositionY(positions[position.x]) !== 0
+        ) {
+          const columns = Object.entries(positions)
+            .map(([x, item]) => {
+              return [
+                parseFloat(x),
+                item.reduce((acc, item) => acc + item.offsetHeight + gap, 0),
+              ];
+            })
+            .sort((a, b) => a[1] - b[1]);
+          position.x = columns?.[0]?.[0] ?? 0;
         }
       }
     });
@@ -107,10 +146,19 @@ export class FlowLayout {
     }px`;
   }
 
+  private debounceUpdate(): void {
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+    }
+    this.debounceTimeout = setTimeout(() => {
+      this.update();
+    }, 100);
+  }
+
   public updateOptions(newOptions: Partial<FlowLayoutOptions>): void {
     this.options = { ...this.options, ...newOptions };
 
-    this.update();
+    this.debounceUpdate();
   }
 }
 

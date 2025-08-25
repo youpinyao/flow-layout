@@ -1,13 +1,19 @@
+type Selector = string | HTMLElement;
 export interface FlowLayoutOptions {
-    container: HTMLElement;
-    items: HTMLElement[];
+    container: Selector;
+    items: Selector | Selector[];
     gap?: number;
-    columns?: number;
+    appendToMinHeightColumn?: boolean;
 }
 export declare class FlowLayout {
     private options;
+    private debounceTimeout;
     constructor(options: FlowLayoutOptions);
-    layout(): void;
+    private getContainer;
+    private getItems;
+    initialize(): void;
+    update(): void;
+    private debounceUpdate;
     updateOptions(newOptions: Partial<FlowLayoutOptions>): void;
 }
 export default FlowLayout;
