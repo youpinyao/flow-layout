@@ -5,6 +5,7 @@ export interface FlowLayoutOptions {
   items: Selector | Selector[];
   gap?: number;
   appendToMinHeightColumn?: boolean;
+  virtualScroll?: boolean;
 }
 
 export class FlowLayout {
@@ -45,11 +46,32 @@ export class FlowLayout {
 
   public initialize(): void {
     const container = this.getContainer();
+    let containerWidth = container.offsetWidth;
 
     container.style.position = 'relative';
 
-    const resizeObserver = new ResizeObserver(() => {
-      this.debounceUpdate();
+    const resizeObserver = new ResizeObserver(entries => {
+      if (entries.length === 1 && entries?.[0].target === container) {
+        const newWidth = entries?.[0].borderBoxSize?.[0]?.inlineSize;
+
+        if (newWidth !== containerWidth) {
+          this.debounceUpdate();
+        }
+
+        containerWidth = newWidth;
+      } else {
+        this.debounceUpdate();
+      }
+    });
+
+    const intersectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.setAttribute('data-visible', 'true');
+        } else {
+          entry.target.setAttribute('data-visible', 'false');
+        }
+      });
     });
 
     const mutationObserver = new MutationObserver(mutations => {
@@ -58,13 +80,14 @@ export class FlowLayout {
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
           if (node instanceof HTMLElement) {
-            resizeObserver.unobserve(node);
             resizeObserver.observe(node);
+            intersectionObserver.observe(node);
           }
         });
         mutation.removedNodes.forEach(node => {
           if (node instanceof HTMLElement) {
             resizeObserver.unobserve(node);
+            intersectionObserver.unobserve(node);
           }
         });
       });
@@ -100,22 +123,25 @@ export class FlowLayout {
       );
     };
 
+    const containerWidth =
+      container.clientWidth - getHorizontalPadding(container);
+
     items.forEach(node => {
       const next = node.nextElementSibling as HTMLElement;
       if (node instanceof HTMLElement) {
-        node.style.position = 'absolute';
-        node.style.transform = `translate(${position.x}px, ${getPositionY(
-          positions[position.x]
-        )}px)`;
+        const positionY = getPositionY(positions[position.x]);
+        const transform = `translate(${position.x}px, ${positionY}px)`;
+
+        requestIdleCallback(() => {
+          node.style.position = 'absolute';
+          node.style.transform = transform;
+        });
 
         positions[position.x] = [...(positions[position.x] || []), node];
         position.x += node.offsetWidth + gap;
 
         // 如果下一个元素的宽度大于容器宽度，则换列
-        if (
-          position.x + (next?.offsetWidth ?? 0) >
-          container.clientWidth - getHorizontalPadding(container)
-        ) {
+        if (position.x + (next?.offsetWidth ?? 0) > containerWidth) {
           position.x = 0;
         }
         // 如果appendToMinHeightColumn为true，则将元素添加到高度最小的列，并且没有空列的情况下
@@ -151,8 +177,9 @@ export class FlowLayout {
       clearTimeout(this.debounceTimeout);
     }
     this.debounceTimeout = setTimeout(() => {
-      console.log(333);
+      console.time('update');
       this.update();
+      console.timeEnd('update');
     }, 50);
   }
 

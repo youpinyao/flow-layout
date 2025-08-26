@@ -82,6 +82,10 @@
       transition: transform 0.3s ease;
     }
     
+    .flow-item[data-visible="false"] {
+      opacity: 0;
+    }
+    
     .flow-item:hover {
       transform: translateY(-2px);
     }
@@ -101,6 +105,7 @@
     .remove-item-btn:hover {
       background: #c82333;
     }
+    
   </style>
 </head>
 <body>
