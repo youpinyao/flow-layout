@@ -1,4 +1,4 @@
-import FlowLayout from '../src/index';
+import { FlowLayout } from '../src/index';
 
 class FlowLayoutDemo {
   container: HTMLElement;
@@ -34,7 +34,7 @@ class FlowLayoutDemo {
     });
 
     document.getElementById('addItem')?.addEventListener('click', () => {
-      this.addItem();
+      this.container.appendChild(this.addItem());
     });
 
     document.getElementById('removeItem')?.addEventListener('click', () => {
@@ -44,9 +44,20 @@ class FlowLayoutDemo {
 
   addInitialItems() {
     // Add some initial items
-    for (let i = 0; i < 100; i++) {
-      this.addItem(i);
+
+    console.time('addInitialItems');
+
+    // for (let i = 0; i < 5000; i++) {
+    //   this.container.appendChild(this.addItem(i));
+    // }
+
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 500; i++) {
+      frag.appendChild(this.addItem(i));
     }
+
+    this.container.appendChild(frag);
+    console.timeEnd('addInitialItems');
   }
 
   addItem(index: number = 0) {
@@ -58,7 +69,7 @@ class FlowLayoutDemo {
     item.style.width = `200px`;
     item.style.height = `${Math.floor(Math.random() * 200) + (index % 2 ? 200 : 50)}px`;
 
-    this.container.appendChild(item);
+    return item;
   }
 
   removeItem() {
