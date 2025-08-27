@@ -52,7 +52,7 @@ class FlowLayoutDemo {
     // }
 
     const frag = document.createDocumentFragment();
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 10000; i++) {
       frag.appendChild(this.addItem(i));
     }
 
@@ -67,6 +67,7 @@ class FlowLayoutDemo {
     item.textContent = `Item ${this.itemCounter}`;
     // random width and height
     item.style.width = `200px`;
+    item.style.visibility = 'hidden';
     item.style.height = `${Math.floor(Math.random() * 200) + (index % 2 ? 200 : 50)}px`;
 
     return item;

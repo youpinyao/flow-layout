@@ -10,6 +10,7 @@ export interface FlowLayoutOptions {
 export class FlowLayout {
   private options: FlowLayoutOptions;
   private debounceTimeout: NodeJS.Timeout | null = null;
+  private space = 300;
 
   constructor(options: FlowLayoutOptions) {
     this.options = {
@@ -75,7 +76,6 @@ export class FlowLayout {
 
     const mutationObserver = new MutationObserver(mutations => {
       this.debounceUpdate();
-
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
           if (node instanceof HTMLElement) {
@@ -98,6 +98,8 @@ export class FlowLayout {
     });
 
     resizeObserver.observe(container);
+
+    this.update();
   }
 
   public update(): void {
@@ -136,12 +138,11 @@ export class FlowLayout {
         requestIdleCallback(() => {
           node.style.position = 'absolute';
           node.style.transform = transform;
+          node.style.visibility = 'visible';
         });
 
-        positions[position.x].nodes = [
-          ...(positions[position.x] || []).nodes,
-          node,
-        ];
+        positions[position.x].nodes.push(node);
+
         positions[position.x].height =
           positions[position.x].height + node.offsetHeight + gap;
         position.x += node.offsetWidth + gap;
@@ -166,13 +167,11 @@ export class FlowLayout {
       }
     });
 
-    requestIdleCallback(() => {
-      container.style.height = `${
-        Object.values(positions)
-          .map(item => item.height)
-          .reduce((acc, item) => Math.max(acc, item), 0) - gap
-      }px`;
-    });
+    container.style.height = `${
+      Object.values(positions)
+        .map(item => item.height)
+        .reduce((acc, item) => Math.max(acc, item), 0) - gap
+    }px`;
   }
 
   private debounceUpdate(): void {
@@ -183,7 +182,7 @@ export class FlowLayout {
       console.time('update');
       this.update();
       console.timeEnd('update');
-    }, 50);
+    }, this.space);
   }
 
   public updateOptions(newOptions: Partial<FlowLayoutOptions>): void {
